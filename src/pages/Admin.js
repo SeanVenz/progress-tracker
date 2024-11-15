@@ -1,17 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { deleteDocumentDataFlower, getDocumentDataFlower } from '../dataflower';
-import { Loader2, Trash2, Edit2, LogOut, Calendar } from 'lucide-react';
+import { getDocumentDataFlower } from '../dataflower';
+import { Loader2, LogOut, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import InputForm from '../components/InputForm';
-import UpdateModal from '../components/UpdateModal';
-import { updateDocumentDataFlower } from '../dataflower';
 import { logOutUserDataFlower } from '../utils/utils';
 
 const Admin = () => {
     const [documents, setDocuments] = useState([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentDoc, setCurrentDoc] = useState(null);
-    const [userName, setUserName] = useState('')
     const navigate = useNavigate();
 
     const handleLogOut = async () => {
@@ -22,58 +16,14 @@ const Admin = () => {
         }
     };
 
-    useEffect(() => {
-        const userSession = JSON.parse(localStorage.getItem("userSession"));
-        if (userSession && userSession.username) {
-            setUserName(userSession.username);
-        }
-    }, []);
-
-
-    const handleUpdate = (doc) => {
-        setCurrentDoc(doc);
-        setIsModalOpen(true);
-    };
-
     const getStatusColor = (status) => {
         const colors = {
-          'Not Started': 'bg-gray-100 text-gray-800',
-          'In Progress': 'bg-blue-100 text-blue-800',
-          'Launched': 'bg-green-100 text-green-800',
-          'Blocked': 'bg-red-100 text-red-800'
+            'Not Started': 'bg-gray-100 text-gray-800',
+            'In Progress': 'bg-blue-100 text-blue-800',
+            'Launched': 'bg-green-100 text-green-800',
+            'Blocked': 'bg-red-100 text-red-800'
         };
         return colors[status] || 'bg-gray-100 text-gray-800';
-      };
-
-    const handleDeleteData = async (docId) => {
-        try {
-            const deleteDoc = await deleteDocumentDataFlower(docId);
-            if (deleteDoc) {
-                alert('Document Deleted');
-                setDocuments(documents.filter(doc => doc.id !== docId)); // Update the UI after deletion
-            }
-        } catch (err) {
-            console.log(err);
-        }
-    };
-
-    const handleSave = async (docId, task, description, dueDate, notes, progress) => {
-        try {
-            const updatedDoc = await updateDocumentDataFlower(docId, task, description, dueDate, notes, progress);
-            if (updatedDoc) {
-                alert('Document updated successfully');
-                setIsModalOpen(false);
-                setDocuments(
-                    documents.map((doc) => (doc.id === docId ? updatedDoc.data : doc)) // Update the list with the new document
-                );
-            }
-        } catch (err) {
-            console.log('Error updating document:', err);
-        }
-    };
-
-    const addNewDocument = (newDoc) => {
-        setDocuments((prevDocs) => [newDoc, ...prevDocs]); // Add the new document to the list
     };
 
     useEffect(() => {
@@ -107,7 +57,7 @@ const Admin = () => {
 
                 {/* Documents Grid */}
                 <div className="space-y-6">
-                    <h2 className="text-xl font-semibold text-gray-900">Projects</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">People</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {documents.length > 0 ? (
                             documents.map((doc) => (
@@ -116,24 +66,10 @@ const Admin = () => {
                                         <div className="p-6 space-y-4">
                                             <div className="flex justify-between items-start">
                                                 <div className="space-y-1">
-                                                <h2 className="text-lg font-semibold text-gray-900">{doc.userName}</h2>
+                                                    <h2 className="text-lg font-semibold text-gray-900">{doc.userName}</h2>
                                                     <h3 className="text-lg font-semibold text-gray-900">{doc.task}</h3>
                                                     <p className="text-sm text-gray-500">{doc.description}</p>
                                                 </div>
-                                                {/* <div className="flex space-x-2">
-                                                    <button
-                                                        className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                                                        onClick={() => handleUpdate(doc)}
-                                                    >
-                                                        <Edit2 className="w-4 h-4 text-gray-500" />
-                                                    </button>
-                                                    <button
-                                                        className="p-1 hover:bg-red-100 rounded-full transition-colors"
-                                                        onClick={() => handleDeleteData(doc.id)}
-                                                    >
-                                                        <Trash2 className="w-4 h-4 text-red-500" />
-                                                    </button>
-                                                </div> */}
                                             </div>
 
                                             <div className="space-y-4">
@@ -188,14 +124,6 @@ const Admin = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Update Modal */}
-            <UpdateModal
-                doc={currentDoc}
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSave={handleSave}
-            />
         </div>
     );
 };

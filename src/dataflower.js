@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 export const registerUserDataFlower = async (username, email, password) => {
     try {
         const response = await axios.get(
-            'https://dataflower.io/api/query/storage/users/e72deb6e-433a-49b0-baae-1070664e69c9',
+            'https://dataflower.io/api/query/storage/users/5d03399f-68cc-4108-a895-6c3571a9b69d',
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ export const registerUserDataFlower = async (username, email, password) => {
         const hashedPassword = await bcrypt.hash(password, 10); 
 
         const registerResponse = await axios.post(
-            'https://dataflower.io/api/query/storage/users/e72deb6e-433a-49b0-baae-1070664e69c9',
+            'https://dataflower.io/api/query/storage/users/5d03399f-68cc-4108-a895-6c3571a9b69d',
             {
                 data: {
                     username,
@@ -57,11 +57,10 @@ export const registerUserDataFlower = async (username, email, password) => {
 export const logInUserDataFlower = async (username, password) => {
     try {
         const response = await axios.post(
-            'https://dataflower.io/api/query/storage/users/e72deb6e-433a-49b0-baae-1070664e69c9/authenticate',
+            'https://dataflower.io/api/query/storage/users/5d03399f-68cc-4108-a895-6c3571a9b69d/authenticate',
             {   
-                field: 'username',
-                value: username,  
-                password: password   
+                username,
+                password 
             },
             {
                 headers: {
@@ -120,7 +119,7 @@ export const logInUserDataFlower = async (username, password) => {
 export const addDocumentDataFlower = async (task, description, dueDate, notes, progress, category, status, size, userName) => {
     try {
         const response = await axios.post(
-            'https://dataflower.io/api/query/storage/datas/606907e9-bedc-4895-adb1-734b8bbb3a98',
+            'https://dataflower.io/api/query/storage/datas/b7841fa2-49c6-4b65-9a46-d4fbd5f9c5df',
             {
                 data: {
                     task, description, dueDate, notes, progress, category, status, size, userName
@@ -145,7 +144,7 @@ export const addDocumentDataFlower = async (task, description, dueDate, notes, p
 export const getDocumentDataFlower = async () => {
     try {
         const response = await axios.get(
-            'https://dataflower.io/api/query/storage/datas/606907e9-bedc-4895-adb1-734b8bbb3a98',
+            'https://dataflower.io/api/query/storage/datas/b7841fa2-49c6-4b65-9a46-d4fbd5f9c5df',
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -165,7 +164,7 @@ export const getDocumentDataFlower = async () => {
 export const deleteDocumentDataFlower = async (docId) => {
     try {
         const response = await axios.delete(
-            `https://dataflower.io/api/query/storage/datas/606907e9-bedc-4895-adb1-734b8bbb3a98/dataId/${docId}`,
+            `https://dataflower.io/api/query/storage/datas/b7841fa2-49c6-4b65-9a46-d4fbd5f9c5df/dataId/${docId}`,
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -185,7 +184,7 @@ export const deleteDocumentDataFlower = async (docId) => {
 export const updateDocumentDataFlower = async (docId, task, description, dueDate, notes, progress, category, status, size, userName) => {
     try {
         const response = await axios.put(
-            `https://dataflower.io/api/query/storage/datas/606907e9-bedc-4895-adb1-734b8bbb3a98/dataId/${docId}`,
+            `https://dataflower.io/api/query/storage/datas/b7841fa2-49c6-4b65-9a46-d4fbd5f9c5df/dataId/${docId}`,
             {
                 data: {
                     task, description, dueDate, notes, progress, category, status, size, userName

@@ -1,5 +1,5 @@
 import React from 'react'
-import { ArrowRight, LogIn, UserPlus, Layout, Database } from 'lucide-react';
+import { LogIn, UserPlus, Layout, Database } from 'lucide-react';
 
 function Home() {
   return (
@@ -38,7 +38,7 @@ function Home() {
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <Database className="h-12 w-12 text-blue-600 mb-4" />
             <h3 className="text-xl font-semibold mb-2">Storage</h3>
-            <p className="text-gray-600">Upload and manage files with DataFlower's storage solution.</p>
+            <p className="text-gray-600">Upload and manage files with DataFlower's storage solution (to be implemented).</p>
           </div>
         </div>
       </div>

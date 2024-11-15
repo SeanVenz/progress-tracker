@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Send, Loader2, Trash2, Edit2, LogOut, Calendar, FileText, Tag, Clock, BarChart2 } from 'lucide-react';
+import { Send, Loader2, Calendar, FileText, Tag} from 'lucide-react';
 import { addDocumentDataFlower } from '../dataflower';
 
 // InputForm Component

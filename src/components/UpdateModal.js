@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Loader2, Calendar, FileText, Tag, BarChart2 } from 'lucide-react';
+import { Send, Loader2, Calendar, FileText, Tag } from 'lucide-react';
 
 const UpdateModal = ({ doc, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({

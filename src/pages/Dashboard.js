@@ -6,6 +6,7 @@ import InputForm from '../components/InputForm';
 import UpdateModal from '../components/UpdateModal';
 import { updateDocumentDataFlower } from '../dataflower';
 import { logOutUserDataFlower } from '../utils/utils';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const Dashboard = () => {
   const [documents, setDocuments] = useState([]);
@@ -13,6 +14,8 @@ const Dashboard = () => {
   const [currentDoc, setCurrentDoc] = useState(null);
   const [userName, setUserName] = useState('')
   const navigate = useNavigate();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteItemId, setDeleteItemId] = useState(null);
 
   const handleLogOut = async () => {
     const logout = await logOutUserDataFlower();
@@ -22,13 +25,28 @@ const Dashboard = () => {
     }
   };
 
+  const handleDeleteClick = (id) => {
+    setDeleteItemId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await handleDeleteData(deleteItemId);
+      setIsDeleteModalOpen(false);
+      setDeleteItemId(null);
+    } catch (error) {
+      console.error('Error deleting item:', error);
+    }
+  };
+
   useEffect(() => {
     const userSession = JSON.parse(localStorage.getItem("userSession"));
     if (userSession && userSession.username) {
       setUserName(userSession.username);
     }
   }, []);
-  
+
 
   const handleUpdate = (doc) => {
     setCurrentDoc(doc);
@@ -77,10 +95,10 @@ const Dashboard = () => {
         console.error('No data found in the response');
       }
     };
-  
+
     fetchDocuments();
   }, [userName]); // Add userName as a dependency to fetch documents when it changes
-  
+
   const getStatusColor = (status) => {
     const colors = {
       'Not Started': 'bg-gray-100 text-gray-800',
@@ -137,7 +155,7 @@ const Dashboard = () => {
                           </button>
                           <button
                             className="p-1 hover:bg-red-100 rounded-full transition-colors"
-                            onClick={() => handleDeleteData(doc.id)}
+                            onClick={() => handleDeleteClick(doc.id)}
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />
                           </button>
@@ -202,6 +220,14 @@ const Dashboard = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
+      />
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Project"
+        message="Are you sure you want to delete this project? This action cannot be undone."
       />
     </div>
   );
