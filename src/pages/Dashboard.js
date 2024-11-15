@@ -1,171 +1,211 @@
 import React, { useEffect, useState } from 'react';
-import { getDocumentWithRelationship, updateDocumentWithRelationship, deleteDocumentWithRelationship, logoutUser } from '../appwrite';
+import { deleteDocumentDataFlower, getDocumentDataFlower } from '../dataflower';
+import { Loader2, Trash2, Edit2, LogOut, Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import InputForm from '../components/InputForm';
 import UpdateModal from '../components/UpdateModal';
-import { useNavigate } from 'react-router-dom';
-import { Loader2, Trash2, Edit2, LogOut } from 'lucide-react';
+import { updateDocumentDataFlower } from '../dataflower';
+import { logOutUserDataFlower } from '../utils/utils';
 
 const Dashboard = () => {
   const [documents, setDocuments] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentDoc, setCurrentDoc] = useState(null);
-  const [currentReview, setCurrentReview] = useState(null);
-
+  const [userName, setUserName] = useState('')
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      const test = await getDocumentWithRelationship();
-      setDocuments(test.documents);
-    };
-
-    fetchDocuments();
-  }, []);
-
-  const handleDelete = async (docId) => {
-    const confirmed = window.confirm('Are you sure you want to delete this document?');
-    if (confirmed) {
-      const response = await deleteDocumentWithRelationship(docId);
-      if (response) {
-        setDocuments(documents.filter((doc) => doc.$id !== docId));
-      }
+  const handleLogOut = async () => {
+    const logout = await logOutUserDataFlower();
+    if (logout) {
+      navigate('/');
+      console.log('Logged out');
     }
   };
 
-  const handleUpdate = (doc, review) => {
+  useEffect(() => {
+    const userSession = JSON.parse(localStorage.getItem("userSession"));
+    if (userSession && userSession.username) {
+      setUserName(userSession.username);
+    }
+  }, []);
+  
+
+  const handleUpdate = (doc) => {
     setCurrentDoc(doc);
-    setCurrentReview(review);
     setIsModalOpen(true);
   };
 
-  const saveUpdatedDocument = async (docId, title, year, author, message, file) => {
-    const response = await updateDocumentWithRelationship(docId, title, year, author, message, file);
-    if (response) {
-      setDocuments(
-        documents.map((doc) =>
-          doc.$id === docId
-            ? { ...doc, title, year, reviews: [{ author, message }], url: response.url || doc.url }
-            : doc
-        )
-      );
+  const handleDeleteData = async (docId) => {
+    try {
+      const deleteDoc = await deleteDocumentDataFlower(docId);
+      if (deleteDoc) {
+        alert('Document Deleted');
+        setDocuments(documents.filter(doc => doc.id !== docId)); // Update the UI after deletion
+      }
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  const handleLogOut = async () => {
-    const logout = await logoutUser();
-    if(logout){
-        navigate('/')
-        console.log('here');
+  const handleSave = async (docId, task, description, dueDate, notes, progress, category, status, size) => {
+    try {
+      const updatedDoc = await updateDocumentDataFlower(docId, task, description, dueDate, notes, progress, category, status, size);
+      if (updatedDoc) {
+        alert('Document updated successfully');
+        setIsModalOpen(false);
+        setDocuments(
+          documents.map((doc) => (doc.id === docId ? updatedDoc.data : doc)) // Update the list with the new document
+        );
+      }
+    } catch (err) {
+      console.log('Error updating document:', err);
     }
-  }
+  };
+
+  const addNewDocument = (newDoc) => {
+    setDocuments((prevDocs) => [newDoc, ...prevDocs]); // Add the new document to the list
+  };
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      const response = await getDocumentDataFlower();
+      if (response && response.data) {
+        // Filter documents by userName
+        const userDocuments = response.data.filter(doc => doc.userName === userName);
+        setDocuments(userDocuments);
+      } else {
+        console.error('No data found in the response');
+      }
+    };
+  
+    fetchDocuments();
+  }, [userName]); // Add userName as a dependency to fetch documents when it changes
+  
+  const getStatusColor = (status) => {
+    const colors = {
+      'Not Started': 'bg-gray-100 text-gray-800',
+      'In Progress': 'bg-blue-100 text-blue-800',
+      'Launched': 'bg-green-100 text-green-800',
+      'Blocked': 'bg-red-100 text-red-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Document Dashboard</h1>
-          <button 
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-gray-900">Project Tracker</h1>
+            <p className="text-gray-500">Welcome back, {userName}</p>
+          </div>
+          <button
             onClick={handleLogOut}
-            className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 transform hover:scale-105"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Log Out
           </button>
         </div>
 
-        {/* Input Form Section */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <InputForm />
+        {/* Input Form */}
+        <div className="mb-8">
+          <InputForm addNewDocument={addNewDocument} />
         </div>
 
-        {/* Documents Grid */}
+        {/* Projects Grid */}
         <div className="space-y-6">
-          {documents.length > 0 ? (
-            documents.map((doc) => (
-              <div 
-                key={doc.$id} 
-                className="bg-white rounded-xl shadow-sm overflow-hidden"
-              >
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900">
-                        {doc.title} <span className="text-gray-500">({doc.year})</span>
-                      </h3>
-                    </div>
-                    <button
-                      onClick={() => handleDelete(doc.$id)}
-                      className="inline-flex items-center text-red-600 hover:text-red-700 transition-colors"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  {/* Document Image */}
-                  <div className="aspect-video bg-gray-100 rounded-lg mb-6 overflow-hidden">
-                    {doc.url ? (
-                      <img
-                        src={doc.url}
-                        alt={doc.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-500">
-                        No image available
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Reviews Section */}
-                  <div className="space-y-4">
-                    <h4 className="font-medium text-gray-900">Reviews</h4>
-                    {doc.reviews && doc.reviews.length > 0 ? (
-                      <div className="space-y-3">
-                        {doc.reviews.map((review) => (
-                          <div 
-                            key={review.$id}
-                            className="flex justify-between items-start bg-gray-50 p-4 rounded-lg"
+          <h2 className="text-xl font-semibold text-gray-900">My Projects</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {documents.length > 0 ? (
+              documents.map((doc) => (
+                doc?.task && (
+                  <div key={doc.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="p-6 space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1">
+                          <h3 className="text-lg font-semibold text-gray-900">{doc.task}</h3>
+                          <p className="text-sm text-gray-500">{doc.description}</p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                            onClick={() => handleUpdate(doc)}
                           >
-                            <div>
-                              <p className="font-medium text-gray-900">{review.author}</p>
-                              <p className="text-gray-600 mt-1">{review.message}</p>
-                            </div>
-                            <button
-                              onClick={() => handleUpdate(doc, review)}
-                              className="inline-flex items-center text-yellow-600 hover:text-yellow-700 transition-colors"
-                            >
-                              <Edit2 className="w-5 h-5" />
-                            </button>
-                          </div>
-                        ))}
+                            <Edit2 className="w-4 h-4 text-gray-500" />
+                          </button>
+                          <button
+                            className="p-1 hover:bg-red-100 rounded-full transition-colors"
+                            onClick={() => handleDeleteData(doc.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </button>
+                        </div>
                       </div>
-                    ) : (
-                      <p className="text-gray-500">No reviews available.</p>
-                    )}
+
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-600">
+                            Due: {new Date(doc.dueDate).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Progress</span>
+                            <span className="font-medium">{doc.progress}%</span>
+                          </div>
+                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-blue-500 rounded-full transition-all"
+                              style={{ width: `${doc.progress}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
+                            {doc.status}
+                          </span>
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            {doc.category}
+                          </span>
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            {doc.size}
+                          </span>
+                        </div>
+
+                        {doc.notes && (
+                          <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                            {doc.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600 mb-4" />
+                <p className="text-gray-600">Loading projects...</p>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600 mb-4" />
-              <p className="text-gray-600">Loading documents...</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Update Modal */}
       <UpdateModal
         doc={currentDoc}
-        review={currentReview}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={saveUpdatedDocument}
+        onSave={handleSave}
       />
     </div>
   );
+
 };
 
 export default Dashboard;

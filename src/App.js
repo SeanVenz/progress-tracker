@@ -5,6 +5,7 @@ import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
+import Admin from './pages/Admin';
 
 const App = () => {
 
@@ -18,6 +19,10 @@ const App = () => {
           <Route 
             path="/dashboard" 
             element={<ProtectedRoute element={<Dashboard />} />} 
+          />
+          <Route
+            path="/admin" 
+            element={<ProtectedRoute element={<Admin />} />} 
           />
         </Routes>
       </main>

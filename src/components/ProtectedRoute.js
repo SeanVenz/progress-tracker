@@ -1,27 +1,27 @@
-// ProtectedRoute.js
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { isAuthenticated } from '../appwrite'; // Import isAuthenticated function
+import { isAuthenticated } from '../utils/utils';
 
-// ProtectedRoute component that checks if the user is authenticated
 const ProtectedRoute = ({ element }) => {
   const [loading, setLoading] = useState(true);
   const [isAuth, setIsAuth] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const session = await isAuthenticated();
-      setIsAuth(!!session); // If session exists, user is authenticated
-      setLoading(false); // Done with the loading check
+    const checkAuth = () => {
+      const session = isAuthenticated();
+      setIsAuth(!!session); // Set isAuth based on whether session data exists
+      setLoading(false); // Loading is complete
     };
 
     checkAuth();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return <p>Loading...</p>; // Can display a loading spinner or similar component here
+  }
 
   if (!isAuth) {
-    return <Navigate to="/" />; // Redirect to SignIn page if not authenticated
+    return <Navigate to="/" replace />; // Redirect to SignIn page if not authenticated
   }
 
   return element; // Render the protected page if authenticated

@@ -1,20 +1,26 @@
 import React, { useState } from 'react';
-import { loginUser } from '../appwrite';
 import { useNavigate } from 'react-router-dom';
+import { logInUserDataFlower } from '../dataflower';
 
 const SignIn = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const login = await loginUser(email, password);
-      if(login){
-        navigate('/dashboard')
+      const login = await logInUserDataFlower(username, password);
+      if (login) {
+        console.log(login.isAdmin)
+        if (login.isAdmin) {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
+      } else {
+        setError('Invalid credentials');
       }
     } catch (err) {
       setError('Invalid credentials');
@@ -31,16 +37,16 @@ const SignIn = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                Username
               </label>
               <div className="mt-1">
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
+                  id="username"
+                  name="username"
+                  type="text"
                   required
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setUserName(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -71,6 +77,7 @@ const SignIn = () => {
               </button>
             </div>
           </form>
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
         </div>
       </div>
     </div>
