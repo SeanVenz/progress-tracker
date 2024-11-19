@@ -18,15 +18,15 @@ export const registerUserDataFlower = async (username, email, password) => {
         const isUsernameTaken = users.some(user => user.username === username);
         const isEmailTaken = users.some(user => user.email === email);
 
-        if (isUsernameTaken) {
-            alert("This username is already chosen. Please select a different one.");
-            return;
-        }
+        // if (isUsernameTaken) {
+        //     alert("This username is already chosen. Please select a different one.");
+        //     return;
+        // }
 
-        if (isEmailTaken) {
-            alert("This email is already registered. Please use a different email.");
-            return;
-        }
+        // if (isEmailTaken) {
+        //     alert("This email is already registered. Please use a different email.");
+        //     return;
+        // }
         const hashedPassword = await bcrypt.hash(password, 10); 
 
         const registerResponse = await axios.post(
@@ -116,13 +116,23 @@ export const logInUserDataFlower = async (username, password) => {
 //     }
 // };
 
-export const addDocumentDataFlower = async (task, description, dueDate, notes, progress, category, status, size, userName) => {
+export const addDocumentDataFlower = async (formData) => {
     try {
+        // First, create the document entry
         const response = await axios.post(
             'https://dataflower.io/api/query/storage/datas/b7841fa2-49c6-4b65-9a46-d4fbd5f9c5df',
             {
                 data: {
-                    task, description, dueDate, notes, progress, category, status, size, userName
+                    task: formData.task,
+                    description: formData.description,
+                    dueDate: formData.dueDate,
+                    notes: formData.notes,
+                    progress: formData.progress,
+                    category: formData.category,
+                    status: formData.status,
+                    size: formData.size,
+                    userName: formData.userName,
+                    attachments: null
                 }
             },
             {
@@ -132,12 +142,37 @@ export const addDocumentDataFlower = async (task, description, dueDate, notes, p
                     'X-Secret-Key': process.env.REACT_APP_SECRET_KEY
                 }
             }
-
         );
 
-        console.log("Document added:", response.data);
+        // If there are files to upload, handle them
+        if (formData.attachments && response.data.data.id) {
+            const formPayload = new FormData();
+            formPayload.append('file', formData.attachments);
+
+            const uploadResponse = await axios.post(
+                `https://dataflower.io/api/query/storage/datas/b7841fa2-49c6-4b65-9a46-d4fbd5f9c5df/${response.data.data.id}/upload`,
+                formPayload,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'X-API-Key': process.env.REACT_APP_API_KEY,
+                        'X-Secret-Key': process.env.REACT_APP_SECRET_KEY
+                    },
+                    params: {
+                        fieldName: 'attachments'
+                    }
+                }
+            );
+
+            if (!uploadResponse.data.success) {
+                throw new Error('File upload failed');
+            }
+        }
+
+        return response.data;
     } catch (error) {
         console.error("Error creating document:", error.response ? error.response.data : error.message);
+        throw error;
     }
 };
 
@@ -206,12 +241,14 @@ export const updateDocumentDataFlower = async (docId, task, description, dueDate
     }
 };
 
+// Updated uploadFileDataFlower function
 export const uploadFileDataFlower = async (dataId, fieldName, file) => {
     try {
         const formData = new FormData();
-        formData.append(fieldName, file);
+        formData.append('file', file);
+        formData.append('fieldName', fieldName); // Specify which field/column to store the file name
 
-        const uploadUrl = `https://dataflower.io/api/query/storage/datas/606907e9-bedc-4895-adb1-734b8bbb3a98/dataId/${dataId}/upload`;
+        const uploadUrl = `https://dataflower.io/api/query/storage/datas/b7841fa2-49c6-4b65-9a46-d4fbd5f9c5df/dataId/${dataId}/upload`;
 
         const response = await axios.post(uploadUrl, formData, {
             headers: {
